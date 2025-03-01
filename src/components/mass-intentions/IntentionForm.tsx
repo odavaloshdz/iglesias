@@ -1,8 +1,8 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { Save, X, Calendar } from "lucide-react";
+import { Save, X, Calendar, Loader2 } from "lucide-react";
 
 import {
   Form,
@@ -12,17 +12,17 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "../ui/form";
-import { Input } from "../ui/input";
-import { Textarea } from "../ui/textarea";
-import { Button } from "../ui/button";
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "../ui/select";
+} from "@/components/ui/select";
 import {
   Card,
   CardContent,
@@ -30,8 +30,9 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "../ui/card";
-import { Checkbox } from "../ui/checkbox";
+} from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
+import { massIntentionService } from "@/services/massIntentionService";
 
 // Define form schema
 const intentionFormSchema = z.object({
@@ -52,17 +53,15 @@ interface IntentionFormProps {
   onSubmit?: (data: IntentionFormValues) => void;
   onCancel?: () => void;
   priests?: { id: string; name: string }[];
+  isLoading?: boolean;
 }
 
 const IntentionForm = ({
   intentionId = "",
   onSubmit = () => {},
   onCancel = () => {},
-  priests = [
-    { id: "1", name: "Padre Francisco" },
-    { id: "2", name: "Padre Antonio" },
-    { id: "3", name: "Padre Miguel" },
-  ],
+  priests = [],
+  isLoading = false,
 }: IntentionFormProps) => {
   const form = useForm<IntentionFormValues>({
     resolver: zodResolver(intentionFormSchema),
@@ -77,6 +76,32 @@ const IntentionForm = ({
       notes: "",
     },
   });
+
+  // Load intention data if editing
+  useEffect(() => {
+    const loadIntention = async () => {
+      if (intentionId) {
+        try {
+          const intention =
+            await massIntentionService.getIntentionById(intentionId);
+          form.reset({
+            name: intention.name,
+            surname: intention.surname,
+            startDate: intention.start_date,
+            endDate: intention.end_date || "",
+            isDateRange: !!intention.end_date,
+            intention: intention.intention,
+            priest: intention.priest_id,
+            notes: intention.notes || "",
+          });
+        } catch (error) {
+          console.error("Error loading intention:", error);
+        }
+      }
+    };
+
+    loadIntention();
+  }, [intentionId, form]);
 
   const isDateRange = form.watch("isDateRange");
 
@@ -114,7 +139,11 @@ const IntentionForm = ({
                   <FormItem>
                     <FormLabel>Nombre</FormLabel>
                     <FormControl>
-                      <Input placeholder="Nombre del solicitante" {...field} />
+                      <Input
+                        placeholder="Nombre del solicitante"
+                        {...field}
+                        disabled={isLoading}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -130,6 +159,7 @@ const IntentionForm = ({
                       <Input
                         placeholder="Apellido del solicitante"
                         {...field}
+                        disabled={isLoading}
                       />
                     </FormControl>
                     <FormMessage />
@@ -148,6 +178,7 @@ const IntentionForm = ({
                           <Checkbox
                             checked={field.value}
                             onCheckedChange={field.onChange}
+                            disabled={isLoading}
                           />
                         </FormControl>
                         <div className="space-y-1 leading-none">
@@ -170,7 +201,7 @@ const IntentionForm = ({
                       {isDateRange ? "Fecha de inicio" : "Fecha"}
                     </FormLabel>
                     <FormControl>
-                      <Input type="date" {...field} />
+                      <Input type="date" {...field} disabled={isLoading} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -185,7 +216,7 @@ const IntentionForm = ({
                     <FormItem>
                       <FormLabel>Fecha de fin</FormLabel>
                       <FormControl>
-                        <Input type="date" {...field} />
+                        <Input type="date" {...field} disabled={isLoading} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -202,6 +233,7 @@ const IntentionForm = ({
                     <Select
                       onValueChange={field.onChange}
                       defaultValue={field.value}
+                      disabled={isLoading}
                     >
                       <FormControl>
                         <SelectTrigger>
@@ -233,6 +265,7 @@ const IntentionForm = ({
                       placeholder="Describa la intención de la misa"
                       className="min-h-[100px]"
                       {...field}
+                      disabled={isLoading}
                     />
                   </FormControl>
                   <FormMessage />
@@ -250,6 +283,7 @@ const IntentionForm = ({
                     <Textarea
                       placeholder="Información adicional relevante"
                       {...field}
+                      disabled={isLoading}
                     />
                   </FormControl>
                   <FormMessage />
@@ -258,11 +292,25 @@ const IntentionForm = ({
             />
 
             <div className="flex justify-end space-x-4">
-              <Button type="button" variant="outline" onClick={onCancel}>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={onCancel}
+                disabled={isLoading}
+              >
                 <X className="mr-2 h-4 w-4" /> Cancelar
               </Button>
-              <Button type="submit">
-                <Save className="mr-2 h-4 w-4" /> Guardar
+              <Button type="submit" disabled={isLoading}>
+                {isLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Guardando...
+                  </>
+                ) : (
+                  <>
+                    <Save className="mr-2 h-4 w-4" /> Guardar
+                  </>
+                )}
               </Button>
             </div>
           </form>

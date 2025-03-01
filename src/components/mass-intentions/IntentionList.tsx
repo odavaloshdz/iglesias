@@ -10,6 +10,8 @@ import {
   MoreHorizontal,
   Check,
   X,
+  FileText,
+  Loader2,
 } from "lucide-react";
 import {
   Table,
@@ -19,33 +21,33 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "../ui/table";
-import { Button } from "../ui/button";
-import { Input } from "../ui/input";
-import { Badge } from "../ui/badge";
+} from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "../ui/select";
+} from "@/components/ui/select";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "../ui/dropdown-menu";
+} from "@/components/ui/dropdown-menu";
 
 interface MassIntention {
   id: string;
   name: string;
   surname: string;
-  startDate: string;
-  endDate?: string;
+  start_date: string;
+  end_date?: string;
   intention: string;
   status: "pending" | "completed" | "cancelled";
-  priest?: string;
+  priests?: { name: string };
 }
 
 interface IntentionListProps {
@@ -58,64 +60,18 @@ interface IntentionListProps {
     id: string,
     status: "pending" | "completed" | "cancelled",
   ) => void;
+  isLoading?: boolean;
 }
 
 const IntentionList = ({
-  intentions = [
-    {
-      id: "1",
-      name: "María",
-      surname: "González",
-      startDate: "2023-05-15",
-      intention: "Por el eterno descanso de Juan Pérez",
-      status: "pending",
-      priest: "Padre Francisco",
-    },
-    {
-      id: "2",
-      name: "Carlos",
-      surname: "Rodríguez",
-      startDate: "2023-05-20",
-      endDate: "2023-05-27",
-      intention: "Por la salud de la familia Rodríguez",
-      status: "pending",
-      priest: "Padre Antonio",
-    },
-    {
-      id: "3",
-      name: "Ana",
-      surname: "Martínez",
-      startDate: "2023-05-10",
-      intention: "En acción de gracias",
-      status: "completed",
-      priest: "Padre Francisco",
-    },
-    {
-      id: "4",
-      name: "José",
-      surname: "López",
-      startDate: "2023-06-01",
-      endDate: "2023-06-30",
-      intention: "Por las almas del purgatorio",
-      status: "pending",
-      priest: "Padre Miguel",
-    },
-    {
-      id: "5",
-      name: "Luisa",
-      surname: "Fernández",
-      startDate: "2023-05-12",
-      intention: "Por los enfermos de la parroquia",
-      status: "cancelled",
-      priest: "Padre Antonio",
-    },
-  ],
+  intentions = [],
   userRole = "secretary",
   onView = (id) => console.log(`View intention ${id}`),
   onEdit = (id) => console.log(`Edit intention ${id}`),
   onDelete = (id) => console.log(`Delete intention ${id}`),
   onStatusChange = (id, status) =>
     console.log(`Change status of ${id} to ${status}`),
+  isLoading = false,
 }: IntentionListProps) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedStatus, setSelectedStatus] = useState<string>("");
@@ -232,9 +188,14 @@ const IntentionList = ({
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-9"
+              disabled={isLoading}
             />
           </div>
-          <Select value={selectedStatus} onValueChange={setSelectedStatus}>
+          <Select
+            value={selectedStatus}
+            onValueChange={setSelectedStatus}
+            disabled={isLoading}
+          >
             <SelectTrigger className="w-full md:w-48">
               <SelectValue placeholder="Estado" />
             </SelectTrigger>
@@ -245,7 +206,7 @@ const IntentionList = ({
               <SelectItem value="cancelled">Cancelada</SelectItem>
             </SelectContent>
           </Select>
-          <Button className="w-full sm:w-auto">
+          <Button className="w-full sm:w-auto" disabled={isLoading}>
             <Filter className="mr-2 h-4 w-4" />
             Filtros avanzados
           </Button>
@@ -267,10 +228,10 @@ const IntentionList = ({
               </TableHead>
               <TableHead
                 className="cursor-pointer"
-                onClick={() => requestSort("startDate")}
+                onClick={() => requestSort("start_date")}
               >
                 <div className="flex items-center">
-                  Fecha {getSortDirectionIcon("startDate")}
+                  Fecha {getSortDirectionIcon("start_date")}
                 </div>
               </TableHead>
               <TableHead>
@@ -298,14 +259,26 @@ const IntentionList = ({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredIntentions.length > 0 ? (
+            {isLoading ? (
+              <TableRow>
+                <TableCell
+                  colSpan={userRole === "priest" ? 6 : 6}
+                  className="text-center py-8 text-gray-500"
+                >
+                  <div className="flex flex-col items-center justify-center">
+                    <Loader2 className="h-8 w-8 animate-spin text-primary mb-2" />
+                    <p>Cargando intenciones...</p>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ) : filteredIntentions.length > 0 ? (
               filteredIntentions.map((intention) => (
                 <TableRow key={intention.id}>
                   <TableCell className="font-medium">
                     {intention.name} {intention.surname}
                   </TableCell>
                   <TableCell>
-                    {formatDateRange(intention.startDate, intention.endDate)}
+                    {formatDateRange(intention.start_date, intention.end_date)}
                   </TableCell>
                   <TableCell className="max-w-xs truncate">
                     {intention.intention}
@@ -316,7 +289,7 @@ const IntentionList = ({
                     </TableCell>
                   )}
                   {userRole === "secretary" && (
-                    <TableCell>{intention.priest}</TableCell>
+                    <TableCell>{intention.priests?.name}</TableCell>
                   )}
                   <TableCell>
                     <Badge variant={getStatusColor(intention.status) as any}>
@@ -325,6 +298,15 @@ const IntentionList = ({
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => onView(intention.id)}
+                        title="Ver detalles"
+                      >
+                        <FileText className="h-4 w-4" />
+                      </Button>
+
                       {userRole === "priest" && (
                         <>
                           <Button
@@ -357,6 +339,7 @@ const IntentionList = ({
                             variant="ghost"
                             size="icon"
                             onClick={() => onEdit(intention.id)}
+                            title="Editar"
                           >
                             <Edit className="h-4 w-4" />
                           </Button>
@@ -367,6 +350,12 @@ const IntentionList = ({
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
+                              <DropdownMenuItem
+                                onClick={() => onView(intention.id)}
+                              >
+                                <FileText className="mr-2 h-4 w-4" />
+                                Ver detalles
+                              </DropdownMenuItem>
                               <DropdownMenuItem
                                 onClick={() => onEdit(intention.id)}
                               >

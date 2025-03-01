@@ -4,29 +4,217 @@ export type Json =
   | boolean
   | null
   | { [key: string]: Json | undefined }
-  | Json[]
+  | Json[];
 
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
-    }
+      documents: {
+        Row: {
+          id: string;
+          created_at: string;
+          updated_at: string;
+          type: "baptism" | "marriage" | "communion" | "confirmation";
+          number: string;
+          book: string;
+          page: string;
+          date: string;
+          church: string;
+          priest: string;
+          notes: string | null;
+          status: "active" | "archived";
+        };
+        Insert: {
+          id?: string;
+          created_at?: string;
+          updated_at?: string;
+          type: "baptism" | "marriage" | "communion" | "confirmation";
+          number: string;
+          book: string;
+          page: string;
+          date: string;
+          church: string;
+          priest: string;
+          notes?: string | null;
+          status?: "active" | "archived";
+        };
+        Update: {
+          id?: string;
+          created_at?: string;
+          updated_at?: string;
+          type?: "baptism" | "marriage" | "communion" | "confirmation";
+          number?: string;
+          book?: string;
+          page?: string;
+          date?: string;
+          church?: string;
+          priest?: string;
+          notes?: string | null;
+          status?: "active" | "archived";
+        };
+      };
+      people: {
+        Row: {
+          id: string;
+          document_id: string;
+          name: string;
+          surname: string;
+          birth_date: string;
+          birth_place: string;
+          role: string | null;
+        };
+        Insert: {
+          id?: string;
+          document_id: string;
+          name: string;
+          surname: string;
+          birth_date: string;
+          birth_place: string;
+          role?: string | null;
+        };
+        Update: {
+          id?: string;
+          document_id?: string;
+          name?: string;
+          surname?: string;
+          birth_date?: string;
+          birth_place?: string;
+          role?: string | null;
+        };
+      };
+      mass_intentions: {
+        Row: {
+          id: string;
+          created_at: string;
+          updated_at: string;
+          name: string;
+          surname: string;
+          start_date: string;
+          end_date: string | null;
+          intention: string;
+          priest_id: string;
+          notes: string | null;
+          status: "pending" | "completed" | "cancelled";
+        };
+        Insert: {
+          id?: string;
+          created_at?: string;
+          updated_at?: string;
+          name: string;
+          surname: string;
+          start_date: string;
+          end_date?: string | null;
+          intention: string;
+          priest_id: string;
+          notes?: string | null;
+          status?: "pending" | "completed" | "cancelled";
+        };
+        Update: {
+          id?: string;
+          created_at?: string;
+          updated_at?: string;
+          name?: string;
+          surname?: string;
+          start_date?: string;
+          end_date?: string | null;
+          intention?: string;
+          priest_id?: string;
+          notes?: string | null;
+          status?: "pending" | "completed" | "cancelled";
+        };
+      };
+      priests: {
+        Row: {
+          id: string;
+          name: string;
+          active: boolean;
+        };
+        Insert: {
+          id?: string;
+          name: string;
+          active?: boolean;
+        };
+        Update: {
+          id?: string;
+          name?: string;
+          active?: boolean;
+        };
+      };
+      users: {
+        Row: {
+          id: string;
+          email: string;
+          name: string;
+          role: "admin" | "secretary" | "priest";
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          email: string;
+          name: string;
+          role?: "admin" | "secretary" | "priest";
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          email?: string;
+          name?: string;
+          role?: "admin" | "secretary" | "priest";
+          created_at?: string;
+        };
+      };
+      ai_settings: {
+        Row: {
+          id: string;
+          user_id: string;
+          default_model: string;
+          openai_key: string | null;
+          deepseek_key: string | null;
+          auto_digitize: boolean;
+          prompt_templates: Json;
+          api_endpoints: Json;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          default_model?: string;
+          openai_key?: string | null;
+          deepseek_key?: string | null;
+          auto_digitize?: boolean;
+          prompt_templates?: Json;
+          api_endpoints?: Json;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          default_model?: string;
+          openai_key?: string | null;
+          deepseek_key?: string | null;
+          auto_digitize?: boolean;
+          prompt_templates?: Json;
+          api_endpoints?: Json;
+        };
+      };
+    };
     Views: {
-      [_ in never]: never
-    }
+      [_ in never]: never;
+    };
     Functions: {
-      [_ in never]: never
-    }
+      [_ in never]: never;
+    };
     Enums: {
-      [_ in never]: never
-    }
+      document_type: "baptism" | "marriage" | "communion" | "confirmation";
+      document_status: "active" | "archived";
+      intention_status: "pending" | "completed" | "cancelled";
+      user_role: "admin" | "secretary" | "priest";
+    };
     CompositeTypes: {
-      [_ in never]: never
-    }
-  }
-}
+      [_ in never]: never;
+    };
+  };
+};
 
-type PublicSchema = Database[Extract<keyof Database, "public">]
+type PublicSchema = Database[Extract<keyof Database, "public">];
 
 export type Tables<
   PublicTableNameOrOptions extends
@@ -39,7 +227,7 @@ export type Tables<
 > = PublicTableNameOrOptions extends { schema: keyof Database }
   ? (Database[PublicTableNameOrOptions["schema"]]["Tables"] &
       Database[PublicTableNameOrOptions["schema"]]["Views"])[TableName] extends {
-      Row: infer R
+      Row: infer R;
     }
     ? R
     : never
@@ -47,11 +235,11 @@ export type Tables<
         PublicSchema["Views"])
     ? (PublicSchema["Tables"] &
         PublicSchema["Views"])[PublicTableNameOrOptions] extends {
-        Row: infer R
+        Row: infer R;
       }
       ? R
       : never
-    : never
+    : never;
 
 export type TablesInsert<
   PublicTableNameOrOptions extends
@@ -62,17 +250,17 @@ export type TablesInsert<
     : never = never,
 > = PublicTableNameOrOptions extends { schema: keyof Database }
   ? Database[PublicTableNameOrOptions["schema"]]["Tables"][TableName] extends {
-      Insert: infer I
+      Insert: infer I;
     }
     ? I
     : never
   : PublicTableNameOrOptions extends keyof PublicSchema["Tables"]
     ? PublicSchema["Tables"][PublicTableNameOrOptions] extends {
-        Insert: infer I
+        Insert: infer I;
       }
       ? I
       : never
-    : never
+    : never;
 
 export type TablesUpdate<
   PublicTableNameOrOptions extends
@@ -83,17 +271,17 @@ export type TablesUpdate<
     : never = never,
 > = PublicTableNameOrOptions extends { schema: keyof Database }
   ? Database[PublicTableNameOrOptions["schema"]]["Tables"][TableName] extends {
-      Update: infer U
+      Update: infer U;
     }
     ? U
     : never
   : PublicTableNameOrOptions extends keyof PublicSchema["Tables"]
     ? PublicSchema["Tables"][PublicTableNameOrOptions] extends {
-        Update: infer U
+        Update: infer U;
       }
       ? U
       : never
-    : never
+    : never;
 
 export type Enums<
   PublicEnumNameOrOptions extends
@@ -106,14 +294,14 @@ export type Enums<
   ? Database[PublicEnumNameOrOptions["schema"]]["Enums"][EnumName]
   : PublicEnumNameOrOptions extends keyof PublicSchema["Enums"]
     ? PublicSchema["Enums"][PublicEnumNameOrOptions]
-    : never
+    : never;
 
 export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
     | keyof PublicSchema["CompositeTypes"]
     | { schema: keyof Database },
   CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
-    schema: keyof Database
+    schema: keyof Database;
   }
     ? keyof Database[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
     : never = never,
@@ -121,4 +309,4 @@ export type CompositeTypes<
   ? Database[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
   : PublicCompositeTypeNameOrOptions extends keyof PublicSchema["CompositeTypes"]
     ? PublicSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
-    : never
+    : never;

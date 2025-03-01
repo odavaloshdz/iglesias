@@ -6,7 +6,14 @@ import { cn } from "@/lib/utils";
 interface DashboardProps {
   userName?: string;
   userRole?: string;
-  defaultView?: "list" | "form" | "detail" | "search";
+  defaultView?:
+    | "list"
+    | "form"
+    | "detail"
+    | "search"
+    | "digitalize"
+    | "ai-settings"
+    | "mass-intentions";
   defaultDocumentType?: "baptism" | "marriage" | "communion" | "confirmation";
   onLogout?: () => void;
 }

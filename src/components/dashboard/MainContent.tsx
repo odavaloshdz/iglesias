@@ -94,6 +94,9 @@ const MainContent = ({
             (selectedDocumentId ? "Editar Documento" : "Nuevo Documento")}
           {currentView === "detail" && "Detalle del Documento"}
           {currentView === "search" && "Búsqueda Avanzada"}
+          {currentView === "mass-intentions" && "Intenciones de Misa"}
+          {currentView === "digitalize" && "Digitalizar Documento"}
+          {currentView === "ai-settings" && "Configuración de IA"}
         </h1>
 
         <div className="flex flex-wrap gap-2">

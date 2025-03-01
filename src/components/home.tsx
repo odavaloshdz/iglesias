@@ -1,17 +1,22 @@
 import React, { useState, useEffect } from "react";
 import LoginForm from "./auth/LoginForm";
 import Dashboard from "./dashboard/Dashboard";
+import { authService } from "@/services/authService";
 
 interface HomeProps {
   isAuthenticated?: boolean;
   userName?: string;
   userRole?: string;
+  defaultView?: string;
+  defaultDocumentType?: string;
 }
 
 const Home = ({
   isAuthenticated = false,
   userName = "Admin Usuario",
   userRole = "Administrador",
+  defaultView = "list",
+  defaultDocumentType = "baptism",
 }: HomeProps) => {
   // Use localStorage to persist authentication state
   const [authenticated, setAuthenticated] = useState(() => {
@@ -30,30 +35,33 @@ const Home = ({
     setIsLoading(true);
     setLoginError("");
 
-    // Simulate API call
     try {
-      // In a real app, this would be an actual API call
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+      // Use the auth service to sign in
+      const user = await authService.signIn(data.email, data.password);
 
-      // For demo purposes, accept any credentials
-      // In a real app, you would validate credentials against your backend
       setAuthenticated(true);
       // Store user info in localStorage
-      localStorage.setItem("userName", userName);
-      localStorage.setItem("userRole", userRole);
+      localStorage.setItem("userName", user.name);
+      localStorage.setItem("userRole", user.role);
     } catch (error) {
       setLoginError("Error al iniciar sesión. Por favor, intente nuevamente.");
+      console.error(error);
     } finally {
       setIsLoading(false);
     }
   };
 
   // Function to handle logout
-  const handleLogout = () => {
-    setAuthenticated(false);
-    localStorage.removeItem("authenticated");
-    localStorage.removeItem("userName");
-    localStorage.removeItem("userRole");
+  const handleLogout = async () => {
+    try {
+      await authService.signOut();
+      setAuthenticated(false);
+      localStorage.removeItem("authenticated");
+      localStorage.removeItem("userName");
+      localStorage.removeItem("userRole");
+    } catch (error) {
+      console.error("Error during logout:", error);
+    }
   };
 
   // Get user info from localStorage if available
@@ -67,6 +75,8 @@ const Home = ({
           userName={storedUserName}
           userRole={storedUserRole}
           onLogout={handleLogout}
+          defaultView={defaultView as any}
+          defaultDocumentType={defaultDocumentType as any}
         />
       ) : (
         <LoginForm

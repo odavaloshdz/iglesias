@@ -40,6 +40,7 @@ interface SidebarProps {
   userRole?: string;
   isCollapsed?: boolean;
   onToggleCollapse?: () => void;
+  onLogout?: () => void;
 }
 
 const Sidebar = ({
@@ -47,6 +48,7 @@ const Sidebar = ({
   userRole = "Administrador",
   isCollapsed = false,
   onToggleCollapse = () => {},
+  onLogout = () => {},
 }: SidebarProps) => {
   const [openSection, setOpenSection] = useState<string | null>("documents");
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -215,7 +217,7 @@ const Sidebar = ({
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button variant="ghost" size="icon">
+                  <Button variant="ghost" size="icon" onClick={onLogout}>
                     <LogOut className="h-4 w-4" />
                   </Button>
                 </TooltipTrigger>
@@ -243,7 +245,7 @@ const Sidebar = ({
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button variant="ghost" size="icon">
+                  <Button variant="ghost" size="icon" onClick={onLogout}>
                     <LogOut className="h-4 w-4" />
                   </Button>
                 </TooltipTrigger>
